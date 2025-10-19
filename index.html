@@ -3,1696 +3,207 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TTK AI Chat V2.0 - Professional Edition</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+<title>CyberClock Minimal</title>
 <style>
-:root{
-  --bg-dark:#0a0a0f;
-  --bg-light:#fafafa;
-  --text-dark:#e8e8e8;
-  --text-light:#1a1a1a;
-  --accent:#a855f7;
-  --accent-hover:#b366ff;
-  --bubble-ai-dark:rgba(25,25,30,0.9);
-  --bubble-user-dark:rgba(45,45,55,0.75);
-  --bubble-ai-light:rgba(248,248,250,0.95);
-  --bubble-user-light:rgba(228,228,235,0.9);
-  --modal-bg: rgba(15,15,20,0.85);
-  --sidebar-bg-dark: rgba(20, 20, 25, 0.95);
-  --sidebar-bg-light: rgba(252, 252, 254, 0.95);
-  --btn-disabled: #555;
-  --success: #10b981;
-  --error: #ef4444;
-  --border-color-dark: rgba(255,255,255,0.08);
-  --border-color-light: rgba(0,0,0,0.08);
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{
-  font-family:'Inter',sans-serif;
-  background: var(--bg-dark);
-  color: var(--text-dark);
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-  position:relative;
-  transition:background 0.4s ease,color 0.4s ease;
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+    font-family:'Orbitron',sans-serif;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    background:#111;
+    color:#0ff;
 }
 
-#splashScreen{
-  position: fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background: var(--bg-dark);
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  z-index:9999;
-  opacity:1;
-  transition: opacity 0.8s ease;
+.tabs {
+    display:flex;
+    justify-content:center;
+    gap:15px;
+    margin-bottom:20px;
 }
-#splashScreen.hidden{opacity:0;pointer-events:none;}
-#splashScreen .ai-spinner{display:flex;align-items:center;gap:12px;}
-#splashScreen .ai-spinner .spinner{
-  width:32px;height:32px;
-  border:3px solid rgba(255,255,255,0.15);
-  border-top:3px solid var(--accent);
-  border-radius:50%;
-  animation: spin 0.9s linear infinite;
+.tab-btn {
+    padding:10px 20px;
+    border-radius:8px;
+    border:1px solid #0ff;
+    background:rgba(0,255,255,0.1);
+    color:#0ff;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.2s;
 }
-#splashScreen span{font-size:1.05em;color: var(--text-dark);font-weight:500;margin-top:12px;letter-spacing:0.3px;}
-@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-
-.message.ai .ai-spinner{display:flex;align-items:center;gap:8px;}
-.message.ai .ai-spinner .spinner{
-  width:18px;height:18px;
-  border:2px solid rgba(255,255,255,0.2);
-  border-top:2px solid var(--accent);
-  border-radius:50%;
-  animation: spin 0.9s linear infinite;
+.tab-btn:hover {
+    background:rgba(0,255,255,0.2);
 }
-.message.ai .ai-spinner span{font-size:0.9em;color: var(--text-dark);opacity:0.85;}
-
-header{
-  padding:16px 28px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  background: rgba(15,15,20,0.7);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border-color-dark);
-  position:relative;
-  z-index:10;
-  transition: all 0.3s ease;
-  width: 100%;
-}
-header .logo-area { display: flex; align-items: center; gap: 16px; }
-header .logo-area span{ font-size:0.95em; opacity:0.9; color: var(--text-dark); font-weight: 600; letter-spacing:0.3px;}
-.header-btn{ 
-  background:none; 
-  border:none; 
-  color:inherit; 
-  font-size:1.4em; 
-  cursor:pointer; 
-  transition:all 0.25s ease; 
-  margin-left:10px;
-  opacity:0.8;
-}
-.header-btn:hover{ transform:scale(1.1); opacity:1;}
-
-#messages{ 
-  flex:1; 
-  overflow-y:auto; 
-  padding:24px 32px; 
-  display:flex; 
-  flex-direction:column; 
-  gap:18px; 
-  z-index:1; 
-  position:relative; 
-  scroll-behavior:smooth;
-}
-#messages::-webkit-scrollbar{width:7px;}
-#messages::-webkit-scrollbar-track{background:transparent;}
-#messages::-webkit-scrollbar-thumb{ background: var(--accent); border-radius:10px;}
-
-.message{ 
-  display:flex; 
-  max-width:72%; 
-  opacity:0; 
-  transform:translateY(16px); 
-  animation: slide-up 0.4s ease-out forwards; 
-  position:relative;
-}
-.message.user{align-self:flex-end;}
-.message.ai{align-self:flex-start;}
-.message.failed { opacity: 0.65; }
-.message .timestamp {
-  font-size: 0.72em;
-  opacity: 0.6;
-  margin-top: 6px;
-  font-weight:500;
+.tab-btn.active {
+    background:rgba(0,255,255,0.3);
+    border-color:#0ff;
 }
 
-.bubble{ 
-  padding:15px 20px; 
-  word-wrap:break-word; 
-  line-height:1.65; 
-  white-space:pre-wrap; 
-  display:flex; 
-  flex-direction:column; 
-  gap:10px; 
-  backdrop-filter:blur(20px); 
-  background: var(--bubble-ai-dark); 
-  border-radius:12px; 
-  position:relative; 
-  transition:all 0.3s ease; 
-  overflow:hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+/* Tab content */
+.tab-panel {
+    display:none;
+    text-align:center;
+    width:100%;
+    max-width:500px;
 }
-.user .bubble{ 
-  background:var(--bubble-user-dark); 
-  color: var(--text-dark); 
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.05);
-}
-.ai .bubble{ 
-  padding:18px 22px; 
-  border-radius:12px; 
-  background: var(--bubble-ai-dark); 
-  border-left: 2px solid var(--accent);
-  border: 1px solid rgba(255,255,255,0.05);
+.tab-panel.show { display:block; }
+
+/* Digital Clock / Timer / Stopwatch */
+.digital-clock, .timer-display {
+    font-size:50px;
+    text-shadow:0 0 10px #0ff;
+    margin-bottom:20px;
+    user-select:none;
 }
 
-.ai .bubble p { margin-bottom: 12px; line-height:1.7;}
-.ai .bubble ul, .ai .bubble ol { margin-left: 22px; margin-bottom: 12px; line-height:1.7;}
-.ai .bubble pre { 
-  background: rgba(0,0,0,0.65);
-  border-left: 2px solid var(--accent); 
-  border-radius:8px; 
-  padding:16px 18px; 
-  overflow-x:auto; 
-  font-family:'JetBrains Mono','Courier New',monospace; 
-  color: #f0f0f0;
-  margin: 12px 0;
-  position: relative;
-  font-size:0.9em;
-  line-height:1.5;
+/* Buttons */
+.buttons {
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
 }
-.ai .bubble pre .copy-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 5px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.8em;
-  opacity: 0.85;
-  transition: 0.25s;
-  font-weight:600;
+button {
+    padding:10px 20px;
+    border-radius:8px;
+    border:1px solid #0ff;
+    background:rgba(0,255,255,0.1);
+    color:#0ff;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.2s;
 }
-.ai .bubble pre .copy-btn:hover { opacity: 1; transform:translateY(-1px);}
+button:hover { background:rgba(0,255,255,0.2); }
+button:active { background:rgba(0,255,255,0.3); }
 
-.ai .bubble code:not(pre code) { 
-  background: rgba(168,85,247,0.15);
-  border-radius:4px; 
-  padding:3px 7px; 
-  font-family:'JetBrains Mono','Courier New',monospace; 
-  color:var(--accent);
-  font-size:0.9em;
-  font-weight:500;
-}
-
-.avatar{ 
-  width:38px; 
-  height:38px; 
-  border-radius:50%; 
-  margin-right:12px; 
-  flex-shrink:0; 
-  transition: transform 0.25s;
-}
-.message.ai .avatar{background:#a855f7 url('https://i.ibb.co/dsCLWn26/images.jpg') center/cover no-repeat;}
-.message.user .avatar{background:#555 url('https://i.ibb.co/PsYbWjjR/png-clipart-aspria-fitness-computer-icons-user-my-account-icon-miscellaneous-monochrome-thumbnail.png') center/cover no-repeat;}
-.message.ai .avatar:hover,.message.user .avatar:hover{ transform: scale(1.08);}
-
-.bubble .image-preview {
-  width: 100%;
-  max-width: 320px;
-  height: auto;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.15);
-  cursor: pointer;
-  transition: 0.3s;
-}
-.bubble .image-preview:hover { transform: scale(1.015); box-shadow:0 4px 12px rgba(0,0,0,0.25);}
-.bubble .generated-image {
-  width: 100%;
-  max-width: 100%;
-  height: auto;
-  border-radius: 10px;
-  border: 2px solid var(--accent);
-  cursor: pointer;
-  transition: 0.3s;
-}
-.bubble .generated-image:hover { transform: scale(1.01); box-shadow: 0 8px 24px rgba(168, 85, 247, 0.35);}
-
-.chat-input{ 
-  display:flex; 
-  padding:16px 28px 18px 28px; 
-  gap:12px; 
-  background: rgba(15,15,20,0.7); 
-  backdrop-filter: blur(20px); 
-  position:relative; 
-  z-index:10; 
-  flex-direction: column;
-  width: 100%;
-  border-top: 1px solid var(--border-color-dark);
-}
-.chat-input-main { display: flex; gap: 10px; width: 100%; align-items: center; }
-.chat-input input[type="text"]{ 
-  flex:1; 
-  padding:14px 16px; 
-  border-radius:8px; 
-  border:1px solid rgba(255,255,255,0.08); 
-  background: rgba(255,255,255,0.06); 
-  color: var(--text-dark); 
-  font-family:'Inter',sans-serif; 
-  font-size:0.95em; 
-  outline:none; 
-  transition:all 0.25s;
-}
-.chat-input input[type="text"]:focus{ 
-  box-shadow: 0 0 0 2px rgba(168,85,247,0.3); 
-  background: rgba(255,255,255,0.09);
-  border-color: var(--accent);
-}
-
-.send-btn, .stop-btn{ 
-  padding:12px 24px; 
-  border:none; 
-  border-radius:8px; 
-  background: var(--accent); 
-  color:#fff; 
-  font-weight:600; 
-  cursor:pointer; 
-  font-family:'Inter',sans-serif; 
-  transition:all 0.25s;
-  letter-spacing:0.3px;
-}
-.send-btn:hover, .stop-btn:hover{ box-shadow:0 4px 12px rgba(168,85,247,0.4); transform: translateY(-1px);}
-.stop-btn { background: var(--error); display: none; }
-.stop-btn.active { display: block; }
-
-.icon-btn{ 
-  background:none;
-  border:none;
-  font-size:1.5em;
-  color:var(--accent);
-  cursor:pointer;
-  transition:all 0.25s;
-  opacity:0.85;
-}
-.icon-btn:hover{ transform: scale(1.1); opacity:1;}
-
-.send-btn:disabled, .icon-btn:disabled {
-  background: var(--btn-disabled);
-  color: #999;
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-.icon-btn:disabled { background: none; }
-.chat-input input[type="text"]:disabled { background: rgba(100,100,100,0.15); opacity:0.6;}
-
-.file-input{display:none;}
-
-#imagePreviewContainer {
-  display: flex;
-  gap: 10px;
-  padding: 0 0 10px 0;
-  overflow-x: auto;
-}
-#imagePreviewContainer .preview-item {
-  position: relative;
-  flex-shrink: 0;
-}
-#imagePreviewContainer img {
-  width: 72px;
-  height: 72px;
-  border-radius: 10px;
-  object-fit: cover;
-  border: 2px solid var(--accent);
-  transition: 0.25s;
-}
-#imagePreviewContainer img:hover { transform: scale(1.05);}
-#imagePreviewContainer .remove-img-btn {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: #000;
-  color: #fff;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  width: 22px;
-  height: 22px;
-  font-size: 13px;
-  font-weight: bold;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  line-height: 1;
-  transition: 0.25s;
-}
-#imagePreviewContainer .remove-img-btn:hover { background: var(--error); transform: scale(1.1);}
-
-@keyframes slide-up{
-  0%{opacity:0;transform:translateY(16px);}
-  100%{opacity:1;transform:translateY(0);}
-}
-
-.toast {
-  position: fixed;
-  bottom: 28px;
-  right: 28px;
-  background: var(--modal-bg);
-  backdrop-filter: blur(20px);
-  color: var(--text-dark);
-  padding: 13px 20px;
-  border-radius: 10px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-  z-index: 1000;
-  animation: slideInRight 0.3s ease;
-  max-width: 340px;
-  font-size: 0.93em;
-  font-weight:500;
-  border: 1px solid rgba(255,255,255,0.1);
-}
-.toast.error { border-left: 3px solid var(--error); }
-.toast.success { border-left: 3px solid var(--success); }
-@keyframes slideInRight {
-  from { transform: translateX(400px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
-#infoModal, #historySidebar, #helpModal{ 
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%; 
-  background: rgba(0,0,0,0.65); 
-  display:flex;
-  justify-content:center;
-  align-items:center; 
-  opacity:0;
-  pointer-events:none;
-  transition:opacity 0.3s ease; 
-  z-index:100;
-  backdrop-filter: blur(6px);
-}
-#infoModal.show, #historySidebar.show, #helpModal.show{ 
-  opacity:1;
-  pointer-events:auto;
-}
-
-.modal-content{ 
-  background: var(--modal-bg); 
-  backdrop-filter: blur(24px); 
-  padding:26px 36px; 
-  border-radius:14px; 
-  max-width:440px; 
-  text-align:center; 
-  color: var(--text-dark); 
-  position:relative;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-  border: 1px solid rgba(255,255,255,0.1);
-}
-.modal-content h2{margin-bottom:14px;font-family:'Orbitron',sans-serif; font-size: 1.5em; font-weight:700;}
-.modal-content p{margin:9px 0; line-height: 1.6; font-size:0.95em;}
-.close-btn{ 
-  position:absolute;
-  top:14px;
-  right:18px; 
-  background:none;
-  border:none;
-  color:var(--text-dark);
-  font-size:2em;
-  cursor:pointer;
-  transition: 0.25s;
-  opacity:0.8;
-}
-.close-btn:hover { transform: scale(1.15); color: var(--accent); opacity:1;}
-
-.history-modal-content {
-  background: var(--sidebar-bg-dark);
-  backdrop-filter: blur(24px);
-  width: 90%;
-  max-width: 540px;
-  max-height: 84vh;
-  border-radius: 14px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-  position: relative;
-  color: var(--text-dark);
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-.history-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 24px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.history-header h2 { font-family: 'Orbitron', sans-serif; flex: 1; font-size: 1.3em; font-weight:700;}
-.history-header .new-chat-btn {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: 0.25s;
-  margin-right: 15px;
-  letter-spacing:0.3px;
-}
-.history-header .new-chat-btn:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(168, 85, 247, 0.45);}
-
-.history-search {
-  width: 100%;
-  padding: 11px 14px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.06);
-  color: var(--text-dark);
-  outline: none;
-  margin-top: 10px;
-  transition: 0.25s;
-  font-size:0.93em;
-}
-.history-search:focus { background: rgba(255,255,255,0.1); box-shadow: 0 0 0 2px rgba(168,85,247,0.3); border-color:var(--accent);}
-
-#historyList {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-}
-.session-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.05);
-  color: var(--text-dark);
-  padding: 13px 16px;
-  border-radius: 8px;
-  margin-bottom: 9px;
-  cursor: pointer;
-  transition: all 0.25s;
-  text-align: left;
-}
-.session-item:hover {
-  background: rgba(255,255,255,0.1);
-  transform: translateX(3px);
-  border-color: rgba(255,255,255,0.15);
-}
-.session-item.active {
-  background: var(--accent);
-  color: #fff;
-  font-weight: 600;
-  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4);
-  border-color: var(--accent);
-}
-.session-info {
-  flex: 1;
-  overflow: hidden;
-}
-.session-title {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-weight: 500;
-  font-size: 0.93em;
-}
-.session-meta {
-  font-size: 0.75em;
-  opacity: 0.7;
-  margin-top: 5px;
-  font-weight:500;
-}
-.session-actions {
-  display: flex;
-  gap: 10px;
-}
-.session-actions button {
-  background: none;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  font-size: 1.2em;
-  padding: 5px;
-  opacity: 0.7;
-  transition: 0.25s;
-}
-.session-actions button:hover {
-  opacity: 1;
-  transform: scale(1.12);
-}
-
-.progress-bar {
-  width: 100%;
-  height: 4px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 3px;
-  overflow: hidden;
-  margin-top: 12px;
-}
-.progress-fill {
-  height: 100%;
-  background: var(--accent);
-  width: 0%;
-  animation: progress-indeterminate 1.5s infinite;
-}
-@keyframes progress-indeterminate {
-  0% { transform: translateX(-100%); width: 35%; }
-  50% { transform: translateX(50%); width: 50%; }
-  100% { transform: translateX(200%); width: 35%; }
-}
-
-body.light{ background:var(--bg-light); color:var(--text-light);}
-body.light header, body.light .chat-input { background: rgba(250,250,252,0.75); border-color: var(--border-color-light);}
-body.light header span { color: var(--text-light); }
-body.light .ai .bubble{background:var(--bubble-ai-light);color:var(--text-light); border-color:rgba(0,0,0,0.08);}
-body.light .user .bubble{background:var(--bubble-user-light); color:var(--text-light); border-color:rgba(0,0,0,0.08);}
-body.light .chat-input input{background:rgba(0,0,0,0.04);color:var(--text-light); border-color:rgba(0,0,0,0.1);}
-body.light .chat-input input:focus{background:rgba(0,0,0,0.06); border-color:var(--accent);}
-body.light .ai .bubble pre { background: rgba(230,232,235,0.9); color: #2d2d2d; }
-body.light .ai .bubble code:not(pre code) { background: rgba(168,85,247,0.12); color:#8b5cf6;}
-body.light .modal-content, body.light .history-modal-content { 
-  background: var(--sidebar-bg-light); 
-  color: var(--text-light);
-  border-color: var(--border-color-light);
-}
-body.light .session-item { background: rgba(0,0,0,0.04); color: var(--text-light); border-color:rgba(0,0,0,0.06);}
-body.light .session-item:hover { background: rgba(0,0,0,0.08); border-color:rgba(0,0,0,0.12);}
-body.light .session-item.active { background: var(--accent); color: #fff; }
-body.light .toast { background: rgba(255,255,255,0.96); color: var(--text-light); box-shadow: 0 6px 20px rgba(0,0,0,0.15);}
-body.light .history-search { background:rgba(0,0,0,0.04); border-color:rgba(0,0,0,0.1);}
-body.light .history-search:focus { background:rgba(0,0,0,0.06);}
-
-@media (max-width: 768px) {
-  .message { max-width: 88%; }
-  header { padding: 14px 20px; }
-  .chat-input { padding: 14px 20px 16px 20px;}
-  #messages { padding: 20px 20px;}
-  .history-modal-content { width: 94%; max-width: none; }
+/* Inputs */
+input {
+    padding:8px 12px;
+    border-radius:5px;
+    border:1px solid #0ff;
+    background:#111;
+    color:#0ff;
+    font-size:16px;
+    text-align:center;
+    margin-bottom:10px;
 }
 </style>
 </head>
 <body>
 
-<div id="splashScreen">
-  <div class="ai-spinner">
-    <div class="spinner"></div>
-    <span>Đang khởi tạo hệ thống AI...</span>
-  </div>
+<div class="tabs">
+    <div class="tab-btn active" data-tab="clock">Clock</div>
+    <div class="tab-btn" data-tab="stopwatch">Stopwatch</div>
+    <div class="tab-btn" data-tab="timer">Timer</div>
+    <div class="tab-btn" data-tab="alarm">Alarm</div>
 </div>
 
-<header>
-  <div class="logo-area">
-    <button class="header-btn" id="historyBtn" aria-label="Lịch sử chat" title="Lịch sử (Ctrl+K)">☰</button>
-    <span>🤖 TTK AI V2.0 Professional</span>
-  </div>
-  <div>
-    <button class="header-btn" id="helpBtn" aria-label="Trợ giúp" title="Trợ giúp">❓</button>
-    <button class="header-btn" id="modeToggle" aria-label="Chế độ sáng/tối" title="Chế độ sáng/tối">🌓</button>
-    <button class="header-btn" id="infoBtn" aria-label="Thông tin" title="Thông tin">ℹ️</button>
-  </div>
-</header>
-
-<div id="messages" role="log" aria-live="polite"></div>
-
-<div class="chat-input">
-  <div id="imagePreviewContainer"></div>
-  <div class="chat-input-main">
-    <button class="icon-btn" id="imgBtn" title="Chèn ảnh" aria-label="Chèn ảnh">🖼️</button>
-    <input type="file" id="fileInput" class="file-input" accept="image/*" multiple>
-    
-    <button class="icon-btn" id="generateImgBtn" title="Tạo ảnh (/taoanh)" aria-label="Tạo ảnh">🎨</button>
-    
-    <input type="text" id="input" placeholder="Nhập tin nhắn hoặc '/taoanh' để tạo ảnh..." aria-label="Nhập tin nhắn">
-    <button id="send" class="send-btn" aria-label="Gửi tin nhắn">Gửi</button>
-    <button id="stop" class="stop-btn" aria-label="Dừng">Dừng</button>
-  </div>
-</div>
-
-<div id="infoModal" role="dialog" aria-labelledby="infoModalTitle">
-  <div class="modal-content">
-    <button class="close-btn" id="closeModal" aria-label="Đóng">&times;</button>
-    <h2 id="infoModalTitle">TTK AI V2.0</h2>
-    <p><strong>Mô hình:</strong> Gemini 2.5 Flash / Imagen 3.0</p>
-    <p><strong>Tính năng:</strong> Streaming, Vision, Image Gen, Sessions</p>
-    <p><strong>Developer:</strong> Trần Tuấn Khang</p>
-    <p style="margin-top:12px;font-size:0.88em;opacity:0.75;">⚠️ API Key đang được hardcode - Chỉ dùng cho dev</p>
-  </div>
-</div>
-
-<div id="helpModal" role="dialog" aria-labelledby="helpModalTitle">
-  <div class="modal-content">
-    <button class="close-btn" id="closeHelpModal" aria-label="Đóng">&times;</button>
-    <h2 id="helpModalTitle">Hướng dẫn sử dụng</h2>
-    <div style="text-align:left;max-width:380px;margin:0 auto;">
-      <p><strong>/taoanh [mô tả]</strong> - Tạo ảnh từ mô tả</p>
-      <p><strong>/image [mô tả]</strong> - Tạo ảnh (giống /taoanh)</p>
-      <p><strong>/imagine [mô tả]</strong> - Tạo ảnh (giống /taoanh)</p>
-      <p><strong>Ctrl+K</strong> - Mở lịch sử chat</p>
-      <p><strong>Enter</strong> - Gửi tin nhắn</p>
-      <p><strong>Shift+Enter</strong> - Xuống dòng</p>
-      <p><strong>Esc</strong> - Đóng modal</p>
-      <p style="margin-top:14px;"><strong>Tính năng:</strong></p>
-      <p>• Dán/kéo thả ảnh để phân tích</p>
-      <p>• Streaming phản hồi thời gian thực</p>
-      <p>• Lưu trữ nhiều phiên chat</p>
-      <p>• Tạo ảnh bằng AI (Imagen 3.0)</p>
+<div class="tab-content">
+    <div class="tab-panel show" data-tab="clock">
+        <div class="digital-clock" id="digitalClock">00:00:00</div>
     </div>
-  </div>
-</div>
 
-<div id="historySidebar" role="dialog" aria-labelledby="historyTitle">
-  <div class="history-modal-content">
-    <div class="history-header">
-      <h2 id="historyTitle">Lịch sử Chat</h2>
-      <button class="new-chat-btn" id="newChatBtn">+ Chat</button>
-      <button class="close-btn" id="closeHistoryModal" aria-label="Đóng">&times;</button>
-      <input type="text" class="history-search" id="historySearch" placeholder="Tìm kiếm..." aria-label="Tìm kiếm phiên chat">
+    <div class="tab-panel" data-tab="stopwatch">
+        <div class="timer-display" id="stopwatchDisplay">00:00:00</div>
+        <div class="buttons">
+            <button onclick="startStopwatch()">Start</button>
+            <button onclick="pauseStopwatch()">Pause</button>
+            <button onclick="resetStopwatch()">Reset</button>
+        </div>
     </div>
-    <div id="historyList"></div>
-  </div>
+
+    <div class="tab-panel" data-tab="timer">
+        <input type="number" id="timerInput" placeholder="Seconds">
+        <div class="timer-display" id="timerDisplay">00:00:00</div>
+        <div class="buttons">
+            <button onclick="startTimer()">Start</button>
+            <button onclick="pauseTimer()">Pause</button>
+            <button onclick="resetTimer()">Reset</button>
+        </div>
+    </div>
+
+    <div class="tab-panel" data-tab="alarm">
+        <input type="time" id="alarmTime">
+        <div class="buttons">
+            <button onclick="setAlarm()">Set Alarm</button>
+        </div>
+        <div id="alarmStatus" style="margin-top:10px;">No alarm set</div>
+    </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+<audio id="alarmSound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
+
 <script>
-(function() {
-'use strict';
-
-const API_KEY = "AIzaSyCrzfPbVtDLKBAsdKO31vdHysBb8JDQYUU";
-const MODEL = "gemini-2.5-flash";
-const CHAT_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:streamGenerateContent?alt=sse&key=${API_KEY}`;
-const IMAGE_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${API_KEY}`;
-const STORAGE_KEY = 'gpt_sessions_v1';
-const LAST_SESSION_KEY = 'last_session_id';
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const MAX_DOM_MESSAGES = 200;
-
-const SYSTEM_INSTRUCTION_VISION = "Bạn là một chuyên gia phân tích thị giác AI. Khi nhận được hình ảnh, hãy phân tích nó một cách siêu chi tiết, cấu trúc, và chuyên nghiệp. Phân tích ngữ cảnh, ý nghĩa, và mối liên hệ sâu sắc. Phản hồi phải chuẩn xác, có chiều sâu, và chia thành các đoạn văn rõ ràng sử dụng Markdown.";
-
-const FEATURE_FLAGS = {
-  streamingEnabled: true,
-  imageGenEnabled: true,
-  localEncryptionEnabled: false,
-  retryEnabled: true
-};
-
-let allSessions = {};
-let currentSessionId = null;
-let selectedImages = [];
-let currentAbortController = null;
-let isProcessing = false;
-
-const messagesDiv = document.getElementById("messages");
-const input = document.getElementById("input");
-const sendBtn = document.getElementById("send");
-const stopBtn = document.getElementById("stop");
-const modeToggle = document.getElementById("modeToggle");
-const imgBtn = document.getElementById("imgBtn");
-const fileInput = document.getElementById("fileInput");
-const generateImgBtn = document.getElementById("generateImgBtn");
-const previewContainer = document.getElementById("imagePreviewContainer");
-const splashScreen = document.getElementById("splashScreen");
-const infoBtn = document.getElementById("infoBtn");
-const infoModal = document.getElementById("infoModal");
-const closeModal = document.getElementById("closeModal");
-const helpBtn = document.getElementById("helpBtn");
-const helpModal = document.getElementById("helpModal");
-const closeHelpModal = document.getElementById("closeHelpModal");
-const historyBtn = document.getElementById("historyBtn");
-const historySidebar = document.getElementById("historySidebar");
-const closeHistoryModal = document.getElementById("closeHistoryModal");
-const newChatBtn = document.getElementById("newChatBtn");
-const historyList = document.getElementById("historyList");
-const historySearch = document.getElementById("historySearch");
-
-window.addEventListener("load", () => {
-  setTimeout(() => {
-    splashScreen.classList.add("hidden");
-    setTimeout(() => {
-      splashScreen.style.display = "none";
-      initApp();
-    }, 800);
-  }, 2000);
+// Tabs
+const tabs = document.querySelectorAll('.tab-btn');
+const panels = document.querySelectorAll('.tab-panel');
+tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        panels.forEach(p => { p.classList.remove('show'); if(p.dataset.tab === tab.dataset.tab) p.classList.add('show'); });
+    });
 });
 
-function initApp() {
-  marked.setOptions({
-    breaks: true,
-    gfm: true,
-    sanitize: false
-  });
-  
-  loadSessionsFromStorage();
-  
-  const lastSessionId = localStorage.getItem(LAST_SESSION_KEY);
-  if (lastSessionId && allSessions[lastSessionId]) {
-    loadSession(lastSessionId);
-  } else {
-    startNewChat();
-  }
-  
-  renderHistorySidebar();
-  setupEventListeners();
+// Digital Clock
+function updateClock() {
+    const now = new Date();
+    const h = now.getHours().toString().padStart(2,'0');
+    const m = now.getMinutes().toString().padStart(2,'0');
+    const s = now.getSeconds().toString().padStart(2,'0');
+    document.getElementById('digitalClock').textContent = `${h}:${m}:${s}`;
 }
+setInterval(updateClock,1000); updateClock();
 
-function loadSessionsFromStorage() {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      allSessions = JSON.parse(stored);
-    }
-  } catch (e) {
-    console.error('Failed to load sessions:', e);
-    showToast('Lỗi tải dữ liệu phiên', 'error');
-    allSessions = {};
-  }
+// Stopwatch
+let stopwatch=0, stopwatchInterval;
+function updateStopwatchDisplay(){
+    let hrs=Math.floor(stopwatch/3600), mins=Math.floor((stopwatch%3600)/60), secs=stopwatch%60;
+    document.getElementById('stopwatchDisplay').textContent=`${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
 }
+function startStopwatch(){if(!stopwatchInterval) stopwatchInterval=setInterval(()=>{stopwatch++;updateStopwatchDisplay();},1000);}
+function pauseStopwatch(){clearInterval(stopwatchInterval);stopwatchInterval=null;}
+function resetStopwatch(){stopwatch=0;updateStopwatchDisplay();}
 
-function saveCurrentSession() {
-  if (!currentSessionId || !allSessions[currentSessionId]) return;
-  
-  try {
-    allSessions[currentSessionId].updatedAt = new Date().toISOString();
-    
-    if (allSessions[currentSessionId].title === "Chat Mới") {
-      const messages = allSessions[currentSessionId].messages;
-      const firstUserMsg = messages.find(m => m.role === 'user');
-      if (firstUserMsg) {
-        const text = firstUserMsg.content;
-        if (text && text.trim()) {
-          allSessions[currentSessionId].title = text.substring(0, 40) + (text.length > 40 ? "..." : "");
-        } else if (firstUserMsg.type === 'image') {
-          allSessions[currentSessionId].title = "📷 Phân tích ảnh";
+// Timer
+let timer=0, timerInterval;
+function updateTimerDisplay(){let hrs=Math.floor(timer/3600), mins=Math.floor((timer%3600)/60), secs=timer%60;
+document.getElementById('timerDisplay').textContent=`${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;}
+function startTimer(){
+    const inputSec = parseInt(document.getElementById('timerInput').value);
+    if(inputSec>0){ timer=inputSec; updateTimerDisplay(); }
+    if(!timerInterval) timerInterval = setInterval(() => {
+        if(timer>0){ timer--; updateTimerDisplay(); }
+        if(timer<=0){ clearInterval(timerInterval); timerInterval=null; document.getElementById('alarmSound').play(); }
+    },1000);
+}
+function pauseTimer(){clearInterval(timerInterval); timerInterval=null;}
+function resetTimer(){clearInterval(timerInterval); timerInterval=null; timer=0; updateTimerDisplay();}
+
+// Alarm
+let alarmTime = null;
+function setAlarm(){
+    alarmTime = document.getElementById('alarmTime').value;
+    document.getElementById('alarmStatus').textContent = `Alarm set for ${alarmTime}`;
+}
+setInterval(()=>{
+    if(alarmTime){
+        const now=new Date();
+        const nowStr=`${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+        if(nowStr===alarmTime){
+            document.getElementById('alarmSound').play();
+            alarmTime=null;
+            document.getElementById('alarmStatus').textContent='No alarm set';
         }
-      }
     }
-    
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(allSessions));
-    localStorage.setItem(LAST_SESSION_KEY, currentSessionId);
-  } catch (e) {
-    console.error('Failed to save session:', e);
-    showToast('Lỗi lưu phiên chat', 'error');
-  }
-}
-
-function loadSession(sessionId) {
-  if (!allSessions[sessionId]) return;
-  
-  saveCurrentSession();
-  
-  currentSessionId = sessionId;
-  const session = allSessions[sessionId];
-  
-  messagesDiv.innerHTML = "";
-  
-  const messages = session.messages || [];
-  const displayMessages = messages.slice(-MAX_DOM_MESSAGES);
-  
-  displayMessages.forEach(msg => {
-    addMessageToDOM(msg.content, msg.role, msg.type, msg.meta);
-  });
-  
-  localStorage.setItem(LAST_SESSION_KEY, currentSessionId);
-  renderHistorySidebar();
-  scrollToBottom(true);
-}
-
-function startNewChat() {
-  saveCurrentSession();
-  
-  const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  currentSessionId = newSessionId;
-  
-  allSessions[newSessionId] = {
-    sessionId: newSessionId,
-    title: "Chat Mới",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    messages: [],
-    metadata: {
-      model: MODEL,
-      language: "vi",
-      pinned: false
-    }
-  };
-  
-  messagesDiv.innerHTML = "";
-  
-  const welcomeMsg = {
-    id: generateMessageId(),
-    role: "assistant",
-    content: "Xin chào 👋! Mình là **TTK AI** – trợ lý ảo của bạn. Hãy gửi tin nhắn, ảnh, hoặc dùng lệnh `/taoanh` để tạo ảnh nhé!",
-    type: "text",
-    meta: { timestamp: new Date().toISOString() }
-  };
-  
-  allSessions[newSessionId].messages.push(welcomeMsg);
-  addMessageToDOM(welcomeMsg.content, welcomeMsg.role, welcomeMsg.type, welcomeMsg.meta);
-  
-  saveCurrentSession();
-  renderHistorySidebar();
-  
-  if (historySidebar.classList.contains('show')) {
-    historySidebar.classList.remove('show');
-  }
-}
-
-function deleteSession(sessionId) {
-  if (!allSessions[sessionId]) return;
-  
-  if (confirm(`Xóa phiên "${allSessions[sessionId].title}"?`)) {
-    delete allSessions[sessionId];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(allSessions));
-    
-    if (currentSessionId === sessionId) {
-      const remainingSessions = Object.keys(allSessions);
-      if (remainingSessions.length > 0) {
-        loadSession(remainingSessions[0]);
-      } else {
-        startNewChat();
-      }
-    }
-    
-    renderHistorySidebar();
-    showToast('Đã xóa phiên chat', 'success');
-  }
-}
-
-function exportSession(sessionId) {
-  if (!allSessions[sessionId]) return;
-  
-  const session = allSessions[sessionId];
-  const dataStr = JSON.stringify(session, null, 2);
-  const dataBlob = new Blob([dataStr], { type: 'application/json' });
-  const url = URL.createObjectURL(dataBlob);
-  
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `${session.title.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.json`;
-  link.click();
-  
-  URL.revokeObjectURL(url);
-  showToast('Đã xuất phiên chat', 'success');
-}
-
-function renderHistorySidebar() {
-  historyList.innerHTML = "";
-  
-  const sessions = Object.values(allSessions).sort((a, b) => {
-    return new Date(b.updatedAt) - new Date(a.updatedAt);
-  });
-  
-  const searchTerm = historySearch.value.toLowerCase();
-  const filteredSessions = searchTerm 
-    ? sessions.filter(s => s.title.toLowerCase().includes(searchTerm))
-    : sessions;
-  
-  filteredSessions.forEach(session => {
-    const item = document.createElement("div");
-    item.className = "session-item";
-    if (session.sessionId === currentSessionId) {
-      item.classList.add("active");
-    }
-    
-    const info = document.createElement("div");
-    info.className = "session-info";
-    
-    const title = document.createElement("div");
-    title.className = "session-title";
-    title.textContent = session.title;
-    
-    const meta = document.createElement("div");
-    meta.className = "session-meta";
-    const date = new Date(session.updatedAt);
-    meta.textContent = formatRelativeTime(date);
-    
-    info.appendChild(title);
-    info.appendChild(meta);
-    
-    const actions = document.createElement("div");
-    actions.className = "session-actions";
-    
-    const exportBtn = document.createElement("button");
-    exportBtn.innerHTML = "💾";
-    exportBtn.title = "Xuất";
-    exportBtn.onclick = (e) => {
-      e.stopPropagation();
-      exportSession(session.sessionId);
-    };
-    
-    const deleteBtn = document.createElement("button");
-    deleteBtn.innerHTML = "🗑️";
-    deleteBtn.title = "Xóa";
-    deleteBtn.onclick = (e) => {
-      e.stopPropagation();
-      deleteSession(session.sessionId);
-    };
-    
-    actions.appendChild(exportBtn);
-    actions.appendChild(deleteBtn);
-    
-    item.appendChild(info);
-    item.appendChild(actions);
-    
-    item.onclick = () => loadSession(session.sessionId);
-    
-    historyList.appendChild(item);
-  });
-}
-
-function generateMessageId() {
-  return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-}
-
-async function sendMessage() {
-  const text = input.value.trim();
-  
-  if (!text && selectedImages.length === 0) return;
-  if (isProcessing) return;
-  
-  isProcessing = true;
-  toggleInputActive(false);
-  
-  const isImageGen = /^\/(taoanh|image|imagine)\s+/i.test(text);
-  let prompt = text;
-  
-  if (isImageGen) {
-    prompt = text.replace(/^\/(taoanh|image|imagine)\s+/i, '').trim();
-    if (!prompt) {
-      showToast("Vui lòng nhập mô tả cho ảnh", "error");
-      isProcessing = false;
-      toggleInputActive(true);
-      return;
-    }
-  }
-  
-  const userMessage = {
-    id: generateMessageId(),
-    role: "user",
-    content: text || "📷 Ảnh",
-    type: selectedImages.length > 0 ? "image" : "text",
-    meta: {
-      timestamp: new Date().toISOString(),
-      images: selectedImages.map(img => ({ src: img.src, data: img.data, mime_type: img.mime_type }))
-    }
-  };
-  
-  allSessions[currentSessionId].messages.push(userMessage);
-  addMessageToDOM(userMessage.content, userMessage.role, userMessage.type, userMessage.meta);
-  
-  input.value = "";
-  const imagesToSend = [...selectedImages];
-  selectedImages = [];
-  previewContainer.innerHTML = "";
-  
-  saveCurrentSession();
-  renderHistorySidebar();
-  
-  const assistantMsg = {
-    id: generateMessageId(),
-    role: "assistant",
-    content: "",
-    type: isImageGen ? "image" : "text",
-    meta: { timestamp: new Date().toISOString(), status: "sending" }
-  };
-  
-  const msgElement = addMessageToDOM("", "assistant", "text", assistantMsg.meta, true);
-  const bubbleEl = msgElement.querySelector('.bubble');
-  
-  try {
-    if (isImageGen && FEATURE_FLAGS.imageGenEnabled) {
-      await handleImageGeneration(prompt, bubbleEl, assistantMsg);
-    } else {
-      await handleChatStreaming(text, imagesToSend, bubbleEl, assistantMsg);
-    }
-    
-    assistantMsg.meta.status = "sent";
-  } catch (err) {
-    console.error('Send error:', err);
-    bubbleEl.innerHTML = `❌ Lỗi: ${err.message}`;
-    assistantMsg.content = `❌ Lỗi: ${err.message}`;
-    assistantMsg.meta.status = "failed";
-    msgElement.classList.add('failed');
-    showToast(err.message, 'error');
-  } finally {
-    isProcessing = false;
-    toggleInputActive(true);
-    currentAbortController = null;
-    stopBtn.classList.remove('active');
-    
-    allSessions[currentSessionId].messages.push(assistantMsg);
-    saveCurrentSession();
-  }
-}
-
-async function handleChatStreaming(text, images, bubbleEl, assistantMsg) {
-  if (!FEATURE_FLAGS.streamingEnabled) {
-    return handleChatNonStreaming(text, images, bubbleEl, assistantMsg);
-  }
-  
-  currentAbortController = new AbortController();
-  stopBtn.classList.add('active');
-  
-  bubbleEl.innerHTML = createSpinner("Đang suy nghĩ...");
-  
-  const messages = buildMessageHistory(text, images);
-  
-  const payload = {
-    contents: messages,
-    generationConfig: {
-      temperature: 0.7,
-      topK: 40,
-      topP: 0.95,
-      maxOutputTokens: 2048,
-    }
-  };
-  
-  if (images.length > 0) {
-    payload.systemInstruction = {
-      parts: [{ text: SYSTEM_INSTRUCTION_VISION }]
-    };
-  }
-  
-  let retryCount = 0;
-  const maxRetries = FEATURE_FLAGS.retryEnabled ? 2 : 0;
-  
-  while (retryCount <= maxRetries) {
-    try {
-      const response = await fetch(CHAT_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: currentAbortController ? currentAbortController.signal : undefined
-      });
-      
-      if (!response.ok) {
-        if (response.status === 429) {
-          throw new Error('Vượt giới hạn yêu cầu. Vui lòng thử lại sau.');
-        }
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || `HTTP ${response.status}`);
-      }
-      
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let accumulatedText = "";
-      
-      bubbleEl.innerHTML = "";
-      
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
-        
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-              
-              if (text) {
-                accumulatedText += text;
-                bubbleEl.innerHTML = marked.parse(accumulatedText);
-                
-                bubbleEl.querySelectorAll('pre code').forEach((block) => {
-                  hljs.highlightElement(block);
-                  addCopyButton(block.parentElement);
-                });
-                
-                scrollToBottom(false);
-              }
-            } catch (e) {
-              // Skip invalid JSON
-            }
-          }
-        }
-      }
-      
-      if (!accumulatedText) {
-        throw new Error('Không nhận được phản hồi');
-      }
-      
-      assistantMsg.content = accumulatedText;
-      return;
-      
-    } catch (err) {
-      if (err.name === 'AbortError') {
-        assistantMsg.content = accumulatedText || "(Đã dừng)";
-        bubbleEl.innerHTML = marked.parse(assistantMsg.content);
-        return;
-      }
-      
-      if (retryCount < maxRetries && isRetriableError(err)) {
-        retryCount++;
-        const delay = 500 * Math.pow(2, retryCount - 1);
-        bubbleEl.innerHTML = createSpinner(`Đang thử lại (${retryCount}/${maxRetries})...`);
-        await sleep(delay);
-        continue;
-      }
-      
-      throw err;
-    }
-  }
-}
-
-async function handleChatNonStreaming(text, images, bubbleEl, assistantMsg) {
-  bubbleEl.innerHTML = createSpinner("Đang xử lý...");
-  
-  const messages = buildMessageHistory(text, images);
-  
-  const endpoint = CHAT_ENDPOINT.replace(':streamGenerateContent?alt=sse', ':generateContent');
-  
-  const payload = {
-    contents: messages,
-    generationConfig: {
-      temperature: 0.7,
-      topK: 40,
-      topP: 0.95,
-      maxOutputTokens: 2048,
-    }
-  };
-  
-  if (images.length > 0) {
-    payload.systemInstruction = {
-      parts: [{ text: SYSTEM_INSTRUCTION_VISION }]
-    };
-  }
-  
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-  
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error?.message || `HTTP ${response.status}`);
-  }
-  
-  const data = await response.json();
-  const fullText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  
-  if (!fullText) {
-    throw new Error('Không nhận được phản hồi');
-  }
-  
-  bubbleEl.innerHTML = marked.parse(fullText);
-  bubbleEl.querySelectorAll('pre code').forEach((block) => {
-    hljs.highlightElement(block);
-    addCopyButton(block.parentElement);
-  });
-  
-  assistantMsg.content = fullText;
-  scrollToBottom(true);
-}
-
-async function handleImageGeneration(prompt, bubbleEl, assistantMsg) {
-  if (!FEATURE_FLAGS.imageGenEnabled) {
-    throw new Error('Tạo ảnh đang bị tắt');
-  }
-  
-  bubbleEl.innerHTML = createSpinner("🎨 Đang tạo ảnh với Imagen 3.0...");
-  
-  const progressBar = document.createElement('div');
-  progressBar.className = 'progress-bar';
-  progressBar.innerHTML = '<div class="progress-fill"></div>';
-  bubbleEl.appendChild(progressBar);
-  
-  try {
-    const payload = {
-      instances: [{
-        prompt: prompt
-      }],
-      parameters: {
-        sampleCount: 1,
-        aspectRatio: "1:1",
-        negativePrompt: "",
-        safetySetting: "block_some",
-        personGeneration: "allow_all"
-      }
-    };
-    
-    console.log('Image generation request:', payload);
-    
-    const response = await fetch(IMAGE_ENDPOINT, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-    
-    console.log('Image API response status:', response.status);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Image API error response:', errorText);
-      
-      let errorData;
-      try {
-        errorData = JSON.parse(errorText);
-      } catch {
-        errorData = { error: { message: errorText } };
-      }
-      
-      throw new Error(errorData.error?.message || `API Error (${response.status})`);
-    }
-    
-    const data = await response.json();
-    console.log('Image API success response:', data);
-    
-    const imageData = data.predictions?.[0]?.bytesBase64Encoded || 
-                      data.predictions?.[0]?.image?.bytesBase64Encoded ||
-                      data.predictions?.[0]?.b64_json;
-    
-    if (imageData) {
-      const imgSrc = `data:image/png;base64,${imageData}`;
-      bubbleEl.innerHTML = `
-        <div style="margin-bottom:14px;">
-          <p style="font-weight:600;color:var(--accent);font-size:0.95em;">✨ Đã tạo ảnh thành công</p>
-          <p style="font-size:0.88em;opacity:0.8;margin-top:4px;">"${prompt}"</p>
-        </div>
-        <img src="${imgSrc}" class="generated-image" alt="Generated: ${prompt}" onclick="window.open(this.src)" style="margin-bottom:10px;">
-        <p style="font-size:0.85em;opacity:0.7;">💡 Click vào ảnh để xem toàn màn hình</p>
-      `;
-      assistantMsg.content = `![Generated: ${prompt}](${imgSrc})`;
-      assistantMsg.type = "image";
-      assistantMsg.meta.imageData = imageData;
-      assistantMsg.meta.imagePrompt = prompt;
-      showToast('Đã tạo ảnh thành công!', 'success');
-    } else {
-      throw new Error('API không trả về dữ liệu ảnh');
-    }
-  } catch (err) {
-    console.error('Image generation error:', err);
-    
-    await sleep(1200);
-    const mockImageUrl = `https://via.placeholder.com/1024x1024/a855f7/ffffff?text=${encodeURIComponent(prompt.substring(0, 35))}`;
-    bubbleEl.innerHTML = `
-      <div style="margin-bottom:14px;">
-        <p style="font-weight:600;color:var(--error);font-size:0.95em;">⚠️ API Imagen không khả dụng</p>
-        <p style="font-size:0.88em;opacity:0.8;margin-top:4px;">Đang hiển thị ảnh placeholder</p>
-      </div>
-      <img src="${mockImageUrl}" class="generated-image" alt="Placeholder: ${prompt}" onclick="window.open(this.src)" style="margin-bottom:10px;">
-      <p style="font-size:0.85em;opacity:0.7;">Lỗi: ${err.message}</p>
-      <p style="font-size:0.83em;opacity:0.65;margin-top:6px;">Vui lòng kiểm tra API key, quota hoặc quyền truy cập Imagen API</p>
-    `;
-    assistantMsg.content = `![Placeholder: ${prompt}](${mockImageUrl})`;
-    assistantMsg.type = "image";
-    assistantMsg.meta.error = err.message;
-    showToast(`Lỗi tạo ảnh: ${err.message}`, 'error');
-  }
-}
-
-function buildMessageHistory(currentText, currentImages) {
-  const session = allSessions[currentSessionId];
-  const history = [];
-  
-  const previousMessages = session.messages.slice(-10);
-  
-  previousMessages.forEach(msg => {
-    const parts = [];
-    
-    if (msg.meta?.images && msg.meta.images.length > 0) {
-      msg.meta.images.forEach(img => {
-        parts.push({
-          inline_data: {
-            mime_type: img.mime_type,
-            data: img.data
-          }
-        });
-      });
-    }
-    
-    if (msg.content && msg.type !== 'image') {
-      parts.push({ text: msg.content });
-    }
-    
-    if (parts.length > 0) {
-      history.push({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: parts
-      });
-    }
-  });
-  
-  const currentParts = [];
-  
-  currentImages.forEach(img => {
-    currentParts.push({
-      inline_data: {
-        mime_type: img.mime_type,
-        data: img.data
-      }
-    });
-  });
-  
-  if (currentText) {
-    currentParts.push({ text: currentText });
-  }
-  
-  if (currentParts.length > 0) {
-    history.push({
-      role: 'user',
-      parts: currentParts
-    });
-  }
-  
-  return history;
-}
-
-function addMessageToDOM(content, role, type = "text", meta = {}, isTyping = false) {
-  const msg = document.createElement("div");
-  msg.className = `message ${role}`;
-  msg.setAttribute('data-role', role);
-  
-  const avatar = document.createElement("div");
-  avatar.className = "avatar";
-  msg.appendChild(avatar);
-  
-  const bubble = document.createElement("div");
-  bubble.className = "bubble";
-  
-  if (meta.images && meta.images.length > 0) {
-    meta.images.forEach(img => {
-      const imgEl = document.createElement("img");
-      imgEl.src = img.src;
-      imgEl.className = "image-preview";
-      imgEl.onclick = () => window.open(img.src);
-      bubble.appendChild(imgEl);
-    });
-  }
-  
-  if (isTyping) {
-    bubble.innerHTML = createSpinner("Processing...");
-  } else if (content) {
-    if (role === 'assistant' && type === 'text') {
-      bubble.innerHTML = marked.parse(content);
-      bubble.querySelectorAll('pre code').forEach((block) => {
-        hljs.highlightElement(block);
-        addCopyButton(block.parentElement);
-      });
-    } else {
-      const textDiv = document.createElement('div');
-      textDiv.textContent = content;
-      bubble.appendChild(textDiv);
-    }
-  }
-  
-  if (meta.timestamp) {
-    const timestamp = document.createElement('div');
-    timestamp.className = 'timestamp';
-    timestamp.textContent = formatTime(new Date(meta.timestamp));
-    bubble.appendChild(timestamp);
-  }
-  
-  msg.appendChild(bubble);
-  messagesDiv.appendChild(msg);
-  
-  setTimeout(() => {
-    msg.style.opacity = 1;
-    msg.style.transform = 'translateY(0)';
-  }, 50);
-  
-  scrollToBottom(true);
-  return msg;
-}
-
-function toggleInputActive(isActive) {
-  input.disabled = !isActive;
-  sendBtn.disabled = !isActive;
-  imgBtn.disabled = !isActive;
-  generateImgBtn.disabled = !isActive;
-}
-
-function createSpinner(text = "Processing...") {
-  return `
-    <div class="ai-spinner">
-      <div class="spinner"></div>
-      <span>${text}</span>
-    </div>
-  `;
-}
-
-function scrollToBottom(force = false) {
-  if (force || isUserNearBottom()) {
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  }
-}
-
-function isUserNearBottom() {
-  const threshold = 300;
-  const position = messagesDiv.scrollTop + messagesDiv.clientHeight;
-  const height = messagesDiv.scrollHeight;
-  return height - position < threshold;
-}
-
-function showToast(message, type = 'info') {
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.textContent = message;
-  document.body.appendChild(toast);
-  
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    setTimeout(() => toast.remove(), 300);
-  }, 3500);
-}
-
-function addCopyButton(preElement) {
-  if (preElement.querySelector('.copy-btn')) return;
-  
-  const button = document.createElement('button');
-  button.className = 'copy-btn';
-  button.textContent = 'Copy';
-  button.onclick = () => {
-    const code = preElement.querySelector('code').textContent;
-    navigator.clipboard.writeText(code).then(() => {
-      button.textContent = 'Copied!';
-      setTimeout(() => button.textContent = 'Copy', 2000);
-    });
-  };
-  preElement.style.position = 'relative';
-  preElement.appendChild(button);
-}
-
-function previewImage(file, src) {
-  if (file.size > MAX_FILE_SIZE) {
-    showToast(`File quá lớn (max ${MAX_FILE_SIZE / 1024 / 1024}MB)`, 'error');
-    return;
-  }
-  
-  const base64Data = src.split(',')[1];
-  const imageId = `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
-  const imgData = {
-    id: imageId,
-    src: src,
-    data: base64Data,
-    mime_type: file.type
-  };
-  selectedImages.push(imgData);
-  
-  const previewItem = document.createElement('div');
-  previewItem.className = 'preview-item';
-  previewItem.dataset.id = imageId;
-  
-  const imgEl = document.createElement('img');
-  imgEl.src = src;
-  
-  const removeBtn = document.createElement('button');
-  removeBtn.className = 'remove-img-btn';
-  removeBtn.innerHTML = '&times;';
-  removeBtn.onclick = () => {
-    selectedImages = selectedImages.filter(img => img.id !== imageId);
-    previewItem.remove();
-  };
-  
-  previewItem.appendChild(imgEl);
-  previewItem.appendChild(removeBtn);
-  previewContainer.appendChild(previewItem);
-}
-
-function formatTime(date) {
-  return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-}
-
-function formatRelativeTime(date) {
-  const now = new Date();
-  const diff = now - date;
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-  
-  if (minutes < 1) return 'Vừa xong';
-  if (minutes < 60) return `${minutes} phút trước`;
-  if (hours < 24) return `${hours} giờ trước`;
-  if (days < 7) return `${days} ngày trước`;
-  
-  return date.toLocaleDateString('vi-VN');
-}
-
-function isRetriableError(error) {
-  return error.message.includes('network') || 
-         error.message.includes('timeout') ||
-         error.message.includes('fetch');
-}
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function setupEventListeners() {
-  sendBtn.onclick = sendMessage;
-  input.addEventListener("keypress", e => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  });
-  
-  stopBtn.onclick = () => {
-    if (currentAbortController) {
-      currentAbortController.abort();
-      stopBtn.classList.remove('active');
-      showToast('Đã dừng', 'success');
-    }
-  };
-  
-  generateImgBtn.onclick = () => {
-    const currentValue = input.value.trim();
-    if (!currentValue.startsWith('/taoanh ') && !currentValue.startsWith('/image ') && !currentValue.startsWith('/imagine ')) {
-      input.value = `/taoanh ${currentValue}`;
-    }
-    input.focus();
-  };
-  
-  modeToggle.onclick = () => document.body.classList.toggle("light");
-  
-  imgBtn.onclick = () => fileInput.click();
-  fileInput.onchange = e => {
-    Array.from(e.target.files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        previewImage(file, event.target.result);
-      };
-      reader.readAsDataURL(file);
-    });
-    fileInput.value = "";
-  };
-  
-  document.addEventListener("paste", e => {
-    const items = e.clipboardData?.items;
-    if (!items) return;
-    
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.startsWith("image/")) {
-        e.preventDefault();
-        const file = items[i].getAsFile();
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          previewImage(file, event.target.result);
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-  });
-  
-  messagesDiv.addEventListener('dragover', e => {
-    e.preventDefault();
-    e.stopPropagation();
-  });
-  
-  messagesDiv.addEventListener('drop', e => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const files = e.dataTransfer.files;
-    Array.from(files).forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          previewImage(file, event.target.result);
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  });
-  
-  infoBtn.onclick = () => infoModal.classList.add("show");
-  closeModal.onclick = () => infoModal.classList.remove("show");
-  
-  helpBtn.onclick = () => helpModal.classList.add("show");
-  closeHelpModal.onclick = () => helpModal.classList.remove("show");
-  
-  historyBtn.onclick = () => historySidebar.classList.add("show");
-  closeHistoryModal.onclick = () => historySidebar.classList.remove("show");
-  newChatBtn.onclick = startNewChat;
-  
-  historySearch.addEventListener('input', debounce(() => {
-    renderHistorySidebar();
-  }, 300));
-  
-  window.onclick = e => {
-    if (e.target === infoModal) infoModal.classList.remove("show");
-    if (e.target === historySidebar) historySidebar.classList.remove("show");
-    if (e.target === helpModal) helpModal.classList.remove("show");
-  };
-  
-  document.addEventListener('keydown', e => {
-    if (e.ctrlKey && e.key === 'k') {
-      e.preventDefault();
-      historySidebar.classList.add('show');
-    }
-    
-    if (e.key === 'Escape') {
-      infoModal.classList.remove('show');
-      historySidebar.classList.remove('show');
-      helpModal.classList.remove('show');
-    }
-  });
-}
-
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
-
-window.TTK_AI = {
-  startNewChat,
-  loadSession,
-  saveCurrentSession,
-  deleteSession,
-  exportSession,
-  getAllSessions: () => allSessions,
-  getCurrentSessionId: () => currentSessionId,
-  clearAllSessions: () => {
-    if (confirm('Xóa tất cả phiên chat?')) {
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(LAST_SESSION_KEY);
-      allSessions = {};
-      startNewChat();
-      showToast('Đã xóa tất cả phiên', 'success');
-    }
-  }
-};
-
-})();
+},1000);
 </script>
+
 </body>
 </html>
